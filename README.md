@@ -10,6 +10,16 @@ A comprehensive "Full Stack with AI" demonstration project using **.NET 8**, **R
     -   **AI Service**: Mock Service (simulating Azure OpenAI GPT-4o).
     -   **Vector Search**: Mock Service (simulating Azure AI Search).
 
+### Backend Configuration (Azure OpenAI & Database)
+- The backend reads configuration from `appsettings.*.json` and environment variables.
+- You can set environment variables via a `.env` in `Backend/EnterpriseAI.API` or via your OS.
+- Supported keys:
+    - `AzureOpenAI__Key`
+    - `AzureOpenAI__Endpoint`
+    - `AzureOpenAI__DeploymentName`
+    - `ConnectionStrings__Default`
+- A template is provided: `Backend/EnterpriseAI.API/.env.template`.
+
 ## Key Features
 
 -   **Streaming Chat**: Real-time token streaming from backend to frontend.
@@ -24,9 +34,11 @@ A comprehensive "Full Stack with AI" demonstration project using **.NET 8**, **R
 ## Getting Started
 
 1.  **Clone the repository**
-2.  **Install Frontend Dependencies**
+2.  **Configure Frontend Environment & Install Deps**
     ```powershell
     cd Frontend
+    # Configure API base URL for chat
+    echo VITE_API_BASE_URL=http://localhost:5222 > .env
     npm install
     cd ..
     ```
@@ -38,6 +50,7 @@ A comprehensive "Full Stack with AI" demonstration project using **.NET 8**, **R
     This will:
     -   Start the **Backend API** (http://localhost:5222)
     -   Start the **Frontend** (http://localhost:5173)
+    -   If `Backend/EnterpriseAI.API/.env` exists, it will be loaded for Azure OpenAI and DB settings.
 
 ## Usage Scenarios
 
@@ -51,3 +64,19 @@ Ask specific questions about the company's contracts to trigger the Retrieval Au
 
 ## License
 MIT
+
+## Architecture Flow
+
+```mermaid
+graph TD
+    U[User in Chat UI] -->|POST message| F[Frontend: send to /api/chat]
+    F --> B[Backend API]
+    B --> C[CopilotService]
+    C --> S[MockSearchService]
+    C --> L[ChatCompletion Service (Azure OpenAI or Mock)]
+    S --> C
+    L --> C
+    C -->|stream tokens| B
+    B --> FE[React Chat UI]
+    FE --> MR[MarkdownRenderer]
+```
