@@ -63,7 +63,45 @@ export default defineConfig([
     ],
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+    ````
+
+    ## Chat UI Setup
+    - Ensure Node.js 18+ and npm are installed.
+    - Install dependencies:
+
+    ```bash
+    cd Frontend
+    npm install
+    ```
+
+    ## Development
+    - Start the dev server (Vite):
+
+    ```bash
+    npm run dev
+    ```
+
+    - The app serves on http://localhost:5173.
+
+    ## Backend API
+    - The chat UI posts to the backend `ChatController` streaming endpoint.
+    - Configure the API base via Vite env:
+
+    Create a `.env` file in `Frontend`:
+
+    ```
+    VITE_API_BASE_URL=http://localhost:5222
+    ```
+
+    If unset, it defaults to `http://localhost:5222`.
+
+    ## Build
+
+    ```bash
+    npm run build
+    ```
+
+    This runs TypeScript checks and builds the production bundle.
         tsconfigRootDir: import.meta.dirname,
       },
       // other options...

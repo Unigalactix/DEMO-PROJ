@@ -33,7 +33,8 @@ export function useChatStream() {
         abortControllerRef.current = new AbortController();
 
         try {
-            const response = await fetch('http://localhost:5222/api/chat', { // Updated to match launchSettings.json
+            const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5222';
+            const response = await fetch(`${apiBase}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -42,24 +43,39 @@ export function useChatStream() {
                 signal: abortControllerRef.current.signal,
             });
 
+            if (!response.ok) {
+                throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            }
             if (!response.body) throw new Error("No response body");
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
+            let buffer = '';
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
                 const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
 
-                setMessages((prev) =>
-                    prev.map((msg) =>
-                        msg.id === assistantMessageId
-                            ? { ...msg, content: msg.content + chunk }
-                            : msg
-                    )
-                );
+                // Try to parse the accumulated buffer as JSON array
+                try {
+                    const tokens = JSON.parse(buffer);
+                    if (Array.isArray(tokens)) {
+                        // If successfully parsed as array, join all tokens
+                        const fullContent = tokens.join('');
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === assistantMessageId
+                                    ? { ...msg, content: fullContent }
+                                    : msg
+                            )
+                        );
+                    }
+                } catch {
+                    // Not yet a complete JSON array, continue accumulating
+                }
             }
         } catch (error) {
             console.error("Streaming error", error);
