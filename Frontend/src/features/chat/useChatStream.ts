@@ -33,7 +33,8 @@ export function useChatStream() {
         abortControllerRef.current = new AbortController();
 
         try {
-            const response = await fetch('http://localhost:5222/api/chat', { // Updated to match launchSettings.json
+            const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5222';
+            const response = await fetch(`${apiBase}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -42,6 +43,9 @@ export function useChatStream() {
                 signal: abortControllerRef.current.signal,
             });
 
+            if (!response.ok) {
+                throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            }
             if (!response.body) throw new Error("No response body");
 
             const reader = response.body.getReader();

@@ -5,4 +5,4 @@ function App() {
   return <ChatUI />
 }
 
-export default App
+export default App;
