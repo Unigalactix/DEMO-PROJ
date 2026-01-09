@@ -46,17 +46,38 @@ export function useChatStream() {
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
+            let buffer = '';
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
+                buffer += decoder.decode(value, { stream: true });
+            }
 
+            // Parse the complete JSON array response
+            try {
+                const tokens = JSON.parse(buffer);
+                if (Array.isArray(tokens)) {
+                    // Simulate streaming by displaying tokens one by one
+                    for (const token of tokens) {
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === assistantMessageId
+                                    ? { ...msg, content: msg.content + token }
+                                    : msg
+                            )
+                        );
+                        // Small delay to show streaming effect
+                        await new Promise(resolve => setTimeout(resolve, 30));
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to parse response", e);
                 setMessages((prev) =>
                     prev.map((msg) =>
                         msg.id === assistantMessageId
-                            ? { ...msg, content: msg.content + chunk }
+                            ? { ...msg, content: buffer }
                             : msg
                     )
                 );
