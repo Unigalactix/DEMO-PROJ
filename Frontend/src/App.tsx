@@ -1,12 +1,8 @@
-import { Chat } from './features/chat/Chat';
-import './App.css';
+import { ChatUI } from './components/ChatUI'
+import './App.css'
 
 function App() {
-  return (
-    <div className="app">
-      <Chat />
-    </div>
-  );
+  return <ChatUI />
 }
 
 export default App;

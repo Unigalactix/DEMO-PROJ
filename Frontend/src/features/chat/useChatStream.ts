@@ -56,26 +56,35 @@ export function useChatStream() {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                buffer += chunk;
+                buffer += decoder.decode(value, { stream: true });
+            }
 
-                // Try to parse the accumulated buffer as JSON array
-                try {
-                    const tokens = JSON.parse(buffer);
-                    if (Array.isArray(tokens)) {
-                        // If successfully parsed as array, join all tokens
-                        const fullContent = tokens.join('');
+            // Parse the complete JSON array response
+            try {
+                const tokens = JSON.parse(buffer);
+                if (Array.isArray(tokens)) {
+                    // Simulate streaming by displaying tokens one by one
+                    for (const token of tokens) {
                         setMessages((prev) =>
                             prev.map((msg) =>
                                 msg.id === assistantMessageId
-                                    ? { ...msg, content: fullContent }
+                                    ? { ...msg, content: msg.content + token }
                                     : msg
                             )
                         );
+                        // Small delay to show streaming effect
+                        await new Promise(resolve => setTimeout(resolve, 30));
                     }
-                } catch {
-                    // Not yet a complete JSON array, continue accumulating
                 }
+            } catch (e) {
+                console.error("Failed to parse response", e);
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === assistantMessageId
+                            ? { ...msg, content: buffer }
+                            : msg
+                    )
+                );
             }
         } catch (error) {
             console.error("Streaming error", error);
