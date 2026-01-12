@@ -46,11 +46,10 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5173", 
-                "http://localhost:3000",
-                "http://localhost:5222",
-                "http://localhost:8080",
-                "http://frontend:8080"  // Allow docker-compose frontend service
+                "http://localhost:5173",  // Vite dev server
+                "http://localhost:3000",  // Alternative React dev port
+                "http://localhost:8080",  // Containerized frontend
+                "http://frontend:8080"    // Docker compose service name
             )
               .AllowAnyHeader()
               .AllowAnyMethod();

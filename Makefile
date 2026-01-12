@@ -102,7 +102,7 @@ clean-all:
 health:
 	@echo "Checking service health..."
 	@echo "Backend:"
-	@curl -s http://localhost:5222/health | jq . || echo "Backend not responding"
+	@curl -s http://localhost:5222/health || echo "Backend not responding"
 	@echo ""
 	@echo "Frontend:"
 	@curl -s http://localhost:5173/health || echo "Frontend not responding"
