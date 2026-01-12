@@ -37,7 +37,7 @@ describe('useChatStream', () => {
       },
     };
 
-    (global.fetch as any).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
     
@@ -66,7 +66,7 @@ describe('useChatStream', () => {
       },
     };
 
-    (global.fetch as any).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
     
@@ -83,7 +83,7 @@ describe('useChatStream', () => {
   });
 
   it('handles fetch errors gracefully', async () => {
-    (global.fetch as any).mockRejectedValue(new Error('Network error'));
+    (global.fetch as unknown as typeof fetch).mockRejectedValue(new Error('Network error'));
 
     const { result } = renderHook(() => useChatStream());
     
@@ -106,7 +106,7 @@ describe('useChatStream', () => {
       statusText: 'Internal Server Error',
     };
 
-    (global.fetch as any).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
     
@@ -137,7 +137,7 @@ describe('useChatStream', () => {
       },
     };
 
-    (global.fetch as any).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
     
