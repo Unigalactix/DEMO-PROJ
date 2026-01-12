@@ -1,3 +1,16 @@
+# Kubernetes Deployment Manifest for Enterprise AI Application
+#
+# IMPORTANT: Before deploying, replace the following placeholders:
+# 1. 'yourregistry.azurecr.io' with your actual container registry (lines 48, 135)
+# 2. 'your-azure-openai-key' with your Azure OpenAI API key (line 20)
+# 3. 'https://your-resource.openai.azure.com/' with your Azure OpenAI endpoint (line 21)
+# 4. 'your-deployment-name' with your model deployment name (line 22)
+# 5. 'enterpriseai.yourdomain.com' with your actual domain (lines 195, 197, 203)
+#
+# For automated replacement, use environment variables with envsubst or similar tools.
+# Example: envsubst < deployment.yaml | kubectl apply -f -
+#
+---
 apiVersion: v1
 kind: Namespace
 metadata:
