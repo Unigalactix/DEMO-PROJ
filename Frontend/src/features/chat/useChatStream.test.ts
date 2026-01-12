@@ -6,9 +6,11 @@ import { useChatStream } from './useChatStream';
 globalThis.fetch = vi.fn();
 
 describe('useChatStream', () => {
+  let counter = 0;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    let counter = 0;
+    counter = 0;
     // Use vi.stubGlobal for mocking crypto
     vi.stubGlobal('crypto', {
       ...globalThis.crypto,
@@ -90,7 +92,7 @@ describe('useChatStream', () => {
     const { result } = renderHook(() => useChatStream());
 
     await act(async () => {
-      await result.current.sendMessage('Hello');
+      await result.current.sendMessage('Test message');
     });
 
     await waitFor(() => {
@@ -99,6 +101,7 @@ describe('useChatStream', () => {
 
     expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[1].content).toContain('Test');
+    expect(result.current.messages[1].content).toContain('response');
   });
 
   it('should handle fetch errors gracefully', async () => {
