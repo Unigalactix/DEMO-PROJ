@@ -45,7 +45,13 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000") // Common Vite/React ports
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:3000",
+                "http://localhost:5222",
+                "http://localhost:8080",
+                "http://frontend:8080"  // Allow docker-compose frontend service
+            )
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -64,5 +70,10 @@ app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+// Health check endpoint for container orchestration
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+   .WithName("HealthCheck")
+   .WithOpenApi();
 
 app.Run();

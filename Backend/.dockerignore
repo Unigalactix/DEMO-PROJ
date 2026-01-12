@@ -1,0 +1,72 @@
+# Build artifacts
+bin/
+obj/
+publish/
+out/
+
+# Dependencies
+packages/
+.nuget/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Environment files
+.env
+.env.*
+!.env.template
+
+# Rider/JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.vsix
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Test results
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs
+*.log
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Frontend files
+../Frontend/
+
+# Documentation
+*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development scripts
+../dev.ps1
+../agents.md
