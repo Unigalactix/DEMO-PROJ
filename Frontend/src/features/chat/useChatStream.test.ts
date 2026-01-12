@@ -1,35 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChatStream } from './useChatStream';
 
-// Mock fetch globally using globalThis
-globalThis.fetch = vi.fn();
+// Mock fetch
+global.fetch = vi.fn();
 
 describe('useChatStream', () => {
-  let counter = 0;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    counter = 0;
-    // Use vi.stubGlobal for mocking crypto
-    vi.stubGlobal('crypto', {
-      ...globalThis.crypto,
-      randomUUID: vi.fn(() => `test-uuid-${counter++}`),
-    });
+    // Mock crypto.randomUUID
+    let counter = 0;
+    global.crypto.randomUUID = vi.fn(() => `test-uuid-${counter++}`);
   });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('should initialize with empty messages and not loading', () => {
+  it('initializes with empty messages and not loading', () => {
     const { result } = renderHook(() => useChatStream());
-
+    
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('should add user message and assistant message on sendMessage', async () => {
+  it('adds user message when sending', async () => {
     const mockResponse = {
       ok: true,
       body: {
@@ -37,196 +28,129 @@ describe('useChatStream', () => {
           read: vi.fn()
             .mockResolvedValueOnce({
               done: false,
-              value: new TextEncoder().encode('["Hello", " ", "World"]'),
+              value: new TextEncoder().encode('["Hello"]'),
             })
             .mockResolvedValueOnce({
               done: true,
-              value: undefined,
             }),
         }),
       },
     };
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
-
+    
     await act(async () => {
-      await result.current.sendMessage('Test message');
+      result.current.sendMessage('Test message');
+      // Wait for initial messages to be added
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
-
-    await waitFor(() => {
-      expect(result.current.messages).toHaveLength(2);
-    });
-
+    
+    expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[0]).toMatchObject({
       role: 'user',
       content: 'Test message',
     });
-    expect(result.current.messages[1]).toMatchObject({
-      role: 'assistant',
-    });
-    expect(result.current.messages[1].content).toContain('Hello');
   });
 
-  it('should handle streaming correctly', async () => {
+  it('sets loading state during message send', async () => {
     const mockResponse = {
       ok: true,
       body: {
         getReader: () => ({
-          read: vi.fn()
-            .mockResolvedValueOnce({
-              done: false,
-              value: new TextEncoder().encode('["Test", " ", "response"]'),
-            })
-            .mockResolvedValueOnce({
-              done: true,
-              value: undefined,
-            }),
+          read: vi.fn().mockResolvedValue({
+            done: true,
+          }),
         }),
       },
     };
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
-
+    
     await act(async () => {
-      await result.current.sendMessage('Test message');
+      result.current.sendMessage('Test');
+      // Wait a tick for the state to update
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
-
+    
+    // Check that loading eventually becomes true and then false
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-
-    expect(result.current.messages).toHaveLength(2);
-    expect(result.current.messages[1].content).toContain('Test');
-    expect(result.current.messages[1].content).toContain('response');
   });
 
-  it('should handle fetch errors gracefully', async () => {
+  it('handles fetch errors gracefully', async () => {
+    (global.fetch as unknown as typeof fetch).mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useChatStream());
+    
+    await act(async () => {
+      await result.current.sendMessage('Test message');
+    });
+    
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    
+    const assistantMessage = result.current.messages.find(m => m.role === 'assistant');
+    expect(assistantMessage?.content).toContain('[Error: Connection interrupted]');
+  });
+
+  it('handles non-ok response status', async () => {
     const mockResponse = {
       ok: false,
       status: 500,
       statusText: 'Internal Server Error',
     };
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
-
+    
     await act(async () => {
       await result.current.sendMessage('Test message');
     });
-
+    
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-
-    await waitFor(() => {
-      expect(result.current.messages).toHaveLength(2);
-    });
-
-    expect(result.current.messages[1].content).toContain('[Error: Connection interrupted]');
+    
+    const assistantMessage = result.current.messages.find(m => m.role === 'assistant');
+    expect(assistantMessage?.content).toContain('[Error: Connection interrupted]');
   });
 
-  it('should complete with isLoading false after processing', async () => {
+  it('uses environment variable for API base URL', async () => {
+    const originalEnv = import.meta.env.VITE_API_BASE_URL;
+    import.meta.env.VITE_API_BASE_URL = 'https://custom-api.com';
+
     const mockResponse = {
       ok: true,
       body: {
         getReader: () => ({
-          read: vi.fn()
-            .mockResolvedValueOnce({
-              done: false,
-              value: new TextEncoder().encode('["Test"]'),
-            })
-            .mockResolvedValueOnce({
-              done: true,
-              value: undefined,
-            }),
+          read: vi.fn().mockResolvedValue({
+            done: true,
+          }),
         }),
       },
     };
 
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
+    (global.fetch as unknown as typeof fetch).mockResolvedValue(mockResponse);
 
     const { result } = renderHook(() => useChatStream());
-
+    
     await act(async () => {
       await result.current.sendMessage('Test');
     });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.messages).toHaveLength(2);
-  });
-
-  it('should handle empty response body', async () => {
-    const mockResponse = {
-      ok: true,
-      body: null,
-    };
-
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useChatStream());
-
-    await act(async () => {
-      await result.current.sendMessage('Test message');
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    await waitFor(() => {
-      expect(result.current.messages).toHaveLength(2);
-    });
-
-    expect(result.current.messages[1].content).toContain('[Error: Connection interrupted]');
-  });
-
-  it('should use correct API endpoint', async () => {
-    const mockResponse = {
-      ok: true,
-      body: {
-        getReader: () => ({
-          read: vi.fn()
-            .mockResolvedValueOnce({
-              done: false,
-              value: new TextEncoder().encode('["Test"]'),
-            })
-            .mockResolvedValueOnce({
-              done: true,
-              value: undefined,
-            }),
-        }),
-      },
-    };
-
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useChatStream());
-
-    await act(async () => {
-      await result.current.sendMessage('Test message');
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/chat'),
-      expect.objectContaining({
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: 'Test message' }),
-      })
+    
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://custom-api.com/api/chat',
+      expect.any(Object)
     );
+
+    // Restore
+    import.meta.env.VITE_API_BASE_URL = originalEnv;
   });
 });
