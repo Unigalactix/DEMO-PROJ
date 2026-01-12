@@ -28,10 +28,52 @@ A comprehensive "Full Stack with AI" demonstration project using **.NET 8**, **R
 
 ## Prerequisites
 
+### For Docker Deployment (Recommended)
+-   [Docker](https://www.docker.com/get-started) (v20.10+)
+-   [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
+
+### For Manual Development
 -   [Node.js](https://nodejs.org/) (v18+)
 -   [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 ## Getting Started
+
+### Option 1: Docker (Recommended for Quick Start)
+
+The easiest way to run the entire application is using Docker Compose:
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/Unigalactix/DEMO-PROJ.git
+    cd DEMO-PROJ
+    ```
+
+2.  **Start with Docker Compose**
+    ```bash
+    docker-compose up --build
+    ```
+    
+    This will:
+    -   Build and start the **Backend API** (http://localhost:5222)
+    -   Build and start the **Frontend** (http://localhost:5173)
+    -   Set up proper networking between services
+    -   Use mock AI services (no Azure keys required)
+
+3.  **Access the application**
+    -   Frontend: http://localhost:5173
+    -   Backend API: http://localhost:5222
+    -   Swagger UI: http://localhost:5222/swagger
+
+4.  **Stop the application**
+    ```bash
+    docker-compose down
+    ```
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Option 2: Manual Development Setup
+
+If you prefer to run services manually:
 
 1.  **Clone the repository**
 2.  **Configure Frontend Environment & Install Deps**
@@ -61,6 +103,34 @@ Ask distinct questions like "Hello" or "Help me write an email". The Copilot wil
 Ask specific questions about the company's contracts to trigger the Retrieval Augmented Generation flow.
 -   **Try asking**: *"What is the termination policy?"*
 -   **Observation**: The system will retrieve the "Termination Clause" from the Mock Search Service and the Copilot will cite it in the headers.
+
+## Deployment
+
+This project is fully containerized and deployment-ready. Multiple deployment options are supported:
+
+-   **Docker Compose**: For local development and simple deployments
+-   **Azure Container Instances**: For serverless container deployment
+-   **Azure Web App**: For PaaS deployment (CI/CD pipeline included)
+-   **Kubernetes (AKS)**: For scalable, production deployments
+-   **AWS ECS/Fargate**: For AWS cloud deployments
+
+For comprehensive deployment instructions, configuration options, and troubleshooting, see:
+📚 **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### Quick Production Deployment
+
+```bash
+# 1. Create production environment file
+cp .env.template .env
+# Edit .env with your production values
+
+# 2. Deploy with docker-compose
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 3. Access your application
+# Frontend: http://localhost (port 80)
+# Backend: http://localhost:8080
+```
 
 ## License
 MIT

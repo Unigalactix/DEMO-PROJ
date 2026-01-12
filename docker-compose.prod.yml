@@ -1,0 +1,73 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: enterpriseai-backend-prod
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Azure OpenAI Configuration (required for production)
+      - AzureOpenAI__Key=${AZURE_OPENAI_KEY}
+      - AzureOpenAI__Endpoint=${AZURE_OPENAI_ENDPOINT}
+      - AzureOpenAI__DeploymentName=${AZURE_OPENAI_DEPLOYMENT}
+      # Database Configuration
+      - ConnectionStrings__Default=${CONNECTION_STRING}
+    networks:
+      - enterpriseai-network
+    restart: always
+    healthcheck:
+      # Note: curl is installed in the Dockerfile for health checks
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    container_name: enterpriseai-frontend-prod
+    ports:
+      - "80:8080"
+      - "443:8080"
+    environment:
+      - VITE_API_BASE_URL=${API_BASE_URL:-http://localhost:8080}
+      - VITE_ENABLE_STREAMING=true
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - enterpriseai-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+networks:
+  enterpriseai-network:
+    driver: bridge
