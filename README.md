@@ -94,6 +94,20 @@ If you prefer to run services manually:
     -   Start the **Frontend** (http://localhost:5173)
     -   If `Backend/EnterpriseAI.API/.env` exists, it will be loaded for Azure OpenAI and DB settings.
 
+## Testing
+
+This project includes a comprehensive unit testing framework using Vitest. Tests are automatically run in CI/CD pipelines.
+
+**Run tests locally:**
+```bash
+cd Frontend
+npm test              # Run all tests once
+npm run test:watch    # Run tests in watch mode
+npm run test:ui       # Open test UI
+```
+
+For detailed testing instructions, see **[TESTING.md](./TESTING.md)**.
+
 ## Usage Scenarios
 
 ### 1. General Chat
