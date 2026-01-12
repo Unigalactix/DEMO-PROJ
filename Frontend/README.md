@@ -1,131 +1,125 @@
-# React + TypeScript + Vite
+# React + TypeScript + Vite Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend application built with React, TypeScript, and Vite. It provides a chat UI interface with markdown rendering capabilities.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js 18+ and npm
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Install Dependencies
 
-## Expanding the ESLint configuration
+```bash
+cd Frontend
+npm install
+```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 2. Configure Environment
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Create a `.env` file in the `Frontend` directory:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      # React + TypeScript + Vite
+```
+VITE_API_BASE_URL=http://localhost:5222
+```
 
-      This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 3. Start Development Server
 
-      Currently, two official plugins are available:
+```bash
+npm run dev
+```
 
-      - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-      - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The app will be available at http://localhost:5173
 
-      ## React Compiler
+## Available Scripts
 
-      The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `npm run dev` - Start the development server with hot module replacement
+- `npm run build` - Build the production bundle (runs TypeScript checks and Vite build)
+- `npm run lint` - Run ESLint to check code quality
+- `npm run preview` - Preview the production build locally
+- `npm test` - Run unit tests once
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:ui` - Run tests with Vitest UI
 
-      ## Expanding the ESLint configuration
+## Testing
 
-      If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This project uses **Vitest** as the testing framework along with **React Testing Library** for component testing.
 
-      ```js
-      export default defineConfig([
-        globalIgnores(['dist']),
-        {
-          files: ['**/*.{ts,tsx}'],
-          extends: [
-            // Other configs...
+### Running Tests
 
-            // Remove tseslint.configs.recommended and replace with this
-            tseslint.configs.recommendedTypeChecked,
-            // Alternatively, use this for stricter rules
-            tseslint.configs.strictTypeChecked,
-            // Optionally, add this for stylistic rules
-            tseslint.configs.stylisticTypeChecked,
+```bash
+# Run tests once
+npm test
 
-            // Other configs...
-          ],
-          languageOptions: {
-            parserOptions: {
-              project: ['./tsconfig.node.json', './tsconfig.app.json'],
-              tsconfigRootDir: import.meta.dirname,
-            },
-            // other options...
-          },
-        },
-      ])
-      ```
+# Run tests in watch mode (auto-rerun on file changes)
+npm run test:watch
 
-      You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+# Run tests with UI interface
+npm run test:ui
+```
 
-      ```js
-      // eslint.config.js
-      import reactX from 'eslint-plugin-react-x'
-      import reactDom from 'eslint-plugin-react-dom'
+### Test Structure
 
-      export default defineConfig([
-        globalIgnores(['dist']),
-        {
-          files: ['**/*.{ts,tsx}'],
-          extends: [
-            // Other configs...
-            // Enable lint rules for React
-            reactX.configs['recommended-typescript'],
-            // Enable lint rules for React DOM
-            reactDom.configs.recommended,
-          ],
-          languageOptions: {
-            parserOptions: {
-              project: ['./tsconfig.node.json', './tsconfig.app.json'],
-              tsconfigRootDir: import.meta.dirname,
-            },
-            // other options...
-          },
-        },
-      ])
-      ```
+Tests are located next to the components they test with a `.test.tsx` extension:
 
-      ## Chat UI Setup
-      - Ensure Node.js 18+ and npm are installed.
-      - Create `.env` in `Frontend` (used by the chat stream):
+```
+src/
+  components/
+    ChatInput.tsx
+    ChatInput.test.tsx
+    MarkdownRenderer.tsx
+    MarkdownRenderer.test.tsx
+```
 
-      ```
-      VITE_API_BASE_URL=http://localhost:5222
-      ```
+### Writing Tests
 
-      ## Development
-      - Install dependencies and start the dev server (Vite):
+Example test for a component:
 
-      ```bash
-      cd Frontend
-      npm install
-      npm run dev
-      ```
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ChatInput } from './ChatInput';
 
-      The app serves on http://localhost:5173.
+describe('ChatInput', () => {
+  it('renders input field and send button', () => {
+    const mockOnSend = vi.fn();
+    render(<ChatInput onSend={mockOnSend} />);
+    
+    expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
+  });
+});
+```
 
-      ## Backend API
-      - The chat UI posts to the backend streaming endpoint at `/api/chat`.
-      - CORS is configured in the backend for `http://localhost:5173`.
+### Test Coverage
 
-      ## Build
+Current test coverage includes:
+- ✅ ChatInput component (5 tests)
+- ✅ MarkdownRenderer component (7 tests)
 
-      ```bash
-      npm run build
-      ```
+## Architecture
 
-      This runs TypeScript checks and builds the production bundle.
+- **Frontend**: React + TypeScript + Vite
+- **Streaming Chat UI**: Real-time message streaming with markdown support
+- **Backend API**: Posts to backend streaming endpoint at `/api/chat`
+- **CORS**: Configured in the backend for `http://localhost:5173`
+
+## Build for Production
+
+```bash
+npm run build
+```
+
+This command:
+1. Runs TypeScript type checking (`tsc -b`)
+2. Builds the optimized production bundle with Vite
+3. Outputs to the `dist` directory
+
+## ESLint Configuration
+
+The project uses ESLint with TypeScript support. For production applications, consider enabling type-aware lint rules. See the ESLint configuration section in `eslint.config.js` for more details.
+
+## License
+
+MIT
+
